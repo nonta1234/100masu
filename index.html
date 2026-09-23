@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="100マス計算" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <title>100マス計算</title>
+  <style>
+    :root {
+      --cell: min(7.6vw, 58px);
+      --border: #444;
+      --header: #f3f5f7;
+      --correct: #e8f7e8;
+      --wrong: #ffeaea;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Noto Sans JP", sans-serif;
+      background: #fafafa;
+      color: #222;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .app {
+      width: min(100%, 860px);
+      margin: 0 auto;
+      padding: max(20px, env(safe-area-inset-top)) 12px
+               max(40px, env(safe-area-inset-bottom));
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: clamp(24px, 5vw, 38px);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    button, select {
+      font: inherit;
+      padding: 10px 16px;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+      background: white;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      touch-action: manipulation;
+    }
+
+    #startBtn {
+      background: #222;
+      color: white;
+      border-color: #222;
+    }
+
+    .timer {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: clamp(28px, 7vw, 48px);
+      margin: 8px 0 16px;
+    }
+
+    .status {
+      min-height: 1.5em;
+      text-align: center;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .board-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+      background: white;
+    }
+
+    th, td {
+      width: var(--cell);
+      height: var(--cell);
+      border: 1px solid var(--border);
+      padding: 0;
+      text-align: center;
+    }
+
+    th {
+      background: var(--header);
+      font-weight: 800;
+      font-size: clamp(14px, 2.8vw, 20px);
+      user-select: none;
+    }
+
+    .corner {
+      background: #222;
+      color: white;
+      font-size: clamp(18px, 3vw, 24px);
+    }
+
+    .answer {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: 0;
+      text-align: center;
+      font: inherit;
+      font-weight: 700;
+      font-size: clamp(14px, 3vw, 20px);
+      background: transparent;
+      appearance: textfield;
+      -moz-appearance: textfield;
+      border-radius: 0;
+    }
+
+    .answer::-webkit-inner-spin-button,
+    .answer::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    td.correct { background: var(--correct); }
+    td.wrong { background: var(--wrong); }
+
+    .hint {
+      text-align: center;
+      margin-top: 14px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    @media (max-width: 560px) {
+      :root { --cell: 44px; }
+      .app { padding-left: 6px; padding-right: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>100マス計算</h1>
+
+    <div class="controls">
+      <label>
+        計算：
+        <select id="operation">
+          <option value="+">たし算</option>
+          <option value="-">ひき算</option>
+          <option value="*">かけ算</option>
+        </select>
+      </label>
+      <button id="startBtn" type="button">スタート</button>
+      <button id="pauseBtn" type="button" disabled>一時停止</button>
+    </div>
+
+    <div id="timer" class="timer">00:00.00</div>
+    <div id="status" class="status">「スタート」を押してください</div>
+
+    <div class="board-wrap">
+      <table id="board" aria-label="100マス計算">
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="hint">
+      正解すると次のマスへ自動で進みます。100問すべて正解するとタイマーが止まります。
+    </div>
+  </main>
+
+  <script>
+    const board = document.querySelector("#board tbody");
+    const startBtn = document.querySelector("#startBtn");
+    const pauseBtn = document.querySelector("#pauseBtn");
+    const timerEl = document.querySelector("#timer");
+    const statusEl = document.querySelector("#status");
+    const operationEl = document.querySelector("#operation");
+
+    let rowNumbers = [];
+    let colNumbers = [];
+    let startedAt = 0;
+    let elapsedBeforePause = 0;
+    let timerId = null;
+    let running = false;
+    let paused = false;
+
+    function shuffle1to10() {
+      const arr = Array.from({ length: 10 }, (_, i) => i + 1);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function calc(a, b) {
+      switch (operationEl.value) {
+        case "-": return a - b;
+        case "*": return a * b;
+        default: return a + b;
+      }
+    }
+
+    function operationMark() {
+      switch (operationEl.value) {
+        case "-": return "−";
+        case "*": return "×";
+        default: return "＋";
+      }
+    }
+
+    function formatTime(ms) {
+      const totalHundredths = Math.floor(ms / 10);
+      const minutes = Math.floor(totalHundredths / 6000);
+      const seconds = Math.floor((totalHundredths % 6000) / 100);
+      const hundredths = totalHundredths % 100;
+
+      return String(minutes).padStart(2, "0") + ":" +
+             String(seconds).padStart(2, "0") + "." +
+             String(hundredths).padStart(2, "0");
+    }
+
+    function getElapsedTime() {
+      if (running && !paused) {
+        return elapsedBeforePause + (performance.now() - startedAt);
+      }
+      return elapsedBeforePause;
+    }
+
+    function updateTimer() {
+      if (!running || paused) return;
+      timerEl.textContent = formatTime(getElapsedTime());
+      timerId = requestAnimationFrame(updateTimer);
+    }
+
+    function buildBoard() {
+      board.innerHTML = "";
+
+      const topRow = document.createElement("tr");
+
+      const corner = document.createElement("th");
+      corner.className = "corner";
+      corner.textContent = operationMark();
+      topRow.appendChild(corner);
+
+      colNumbers.forEach(num => {
+        const th = document.createElement("th");
+        th.textContent = num;
+        topRow.appendChild(th);
+      });
+
+      board.appendChild(topRow);
+
+      rowNumbers.forEach((rowNum, r) => {
+        const tr = document.createElement("tr");
+
+        const rowHeader = document.createElement("th");
+        rowHeader.textContent = rowNum;
+        tr.appendChild(rowHeader);
+
+        colNumbers.forEach((colNum, c) => {
+          const td = document.createElement("td");
+
+          const input = document.createElement("input");
+          input.type = "number";
+          input.inputMode = "numeric";
+          input.className = "answer";
+          input.dataset.row = r;
+          input.dataset.col = c;
+          input.dataset.correct = calc(rowNum, colNum);
+          input.autocomplete = "off";
+          input.disabled = !running || paused;
+
+          input.addEventListener("input", checkInput);
+
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+
+        board.appendChild(tr);
+      });
+    }
+
+    function checkInput(event) {
+      const input = event.target;
+      const td = input.parentElement;
+
+      if (input.value === "") {
+        td.classList.remove("correct", "wrong");
+        return;
+      }
+
+      const isCorrect =
+        Number(input.value) === Number(input.dataset.correct);
+
+      if (isCorrect) {
+        td.classList.add("correct");
+        td.classList.remove("wrong");
+
+        checkAllCorrect();
+
+        if (running && !paused) {
+          focusNextInput(input);
+        }
+      } else {
+        td.classList.add("wrong");
+        td.classList.remove("correct");
+      }
+    }
+
+    function focusNextInput(current) {
+      const inputs = [...document.querySelectorAll(".answer")];
+      const index = inputs.indexOf(current);
+      if (index >= 0 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+        inputs[index + 1].select();
+      }
+    }
+
+    function checkAllCorrect() {
+      if (!running) return;
+
+      const inputs = [...document.querySelectorAll(".answer")];
+
+      const allCorrect = inputs.length === 100 &&
+        inputs.every(input =>
+          input.value !== "" &&
+          Number(input.value) === Number(input.dataset.correct)
+        );
+
+      if (!allCorrect) return;
+
+      elapsedBeforePause = getElapsedTime();
+      running = false;
+      paused = false;
+      cancelAnimationFrame(timerId);
+
+      timerEl.textContent = formatTime(elapsedBeforePause);
+      statusEl.textContent = "全問正解！";
+
+      inputs.forEach(input => input.disabled = true);
+      startBtn.textContent = "もう一度";
+      pauseBtn.textContent = "一時停止";
+      pauseBtn.disabled = true;
+    }
+
+    function startGame() {
+      cancelAnimationFrame(timerId);
+
+      rowNumbers = shuffle1to10();
+      colNumbers = shuffle1to10();
+
+      elapsedBeforePause = 0;
+      running = true;
+      paused = false;
+
+      timerEl.textContent = "00:00.00";
+      statusEl.textContent = "計算中…";
+      startBtn.textContent = "やり直す";
+      pauseBtn.textContent = "一時停止";
+      pauseBtn.disabled = false;
+
+      buildBoard();
+
+      startedAt = performance.now();
+      updateTimer();
+
+      const firstInput = document.querySelector(".answer");
+      if (firstInput) firstInput.focus();
+    }
+
+    function togglePause() {
+      if (!running) return;
+
+      const inputs = [...document.querySelectorAll(".answer")];
+
+      if (!paused) {
+        elapsedBeforePause = getElapsedTime();
+        paused = true;
+        cancelAnimationFrame(timerId);
+
+        timerEl.textContent = formatTime(elapsedBeforePause);
+        statusEl.textContent = "一時停止中";
+        pauseBtn.textContent = "再開";
+        inputs.forEach(input => input.disabled = true);
+      } else {
+        paused = false;
+        startedAt = performance.now();
+
+        statusEl.textContent = "計算中…";
+        pauseBtn.textContent = "一時停止";
+        inputs.forEach(input => input.disabled = false);
+        updateTimer();
+
+        const next = inputs.find(input =>
+          input.value === "" ||
+          Number(input.value) !== Number(input.dataset.correct)
+        );
+        if (next) next.focus();
+      }
+    }
+
+    startBtn.addEventListener("click", startGame);
+    pauseBtn.addEventListener("click", togglePause);
+
+    operationEl.addEventListener("change", () => {
+      if (running) startGame();
+      else buildBoard();
+    });
+
+    rowNumbers = shuffle1to10();
+    colNumbers = shuffle1to10();
+    buildBoard();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
