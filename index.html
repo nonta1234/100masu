@@ -3,197 +3,1689 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="100マス計算" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-  <title>100マス計算</title>
-  <style>
-    :root {
-      --cell: min(7.6vw, 58px);
+  <title>マス計算</title>
+  <meta name="theme-color" content="#fff4dc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="マス計算">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+  <style id="app-styles">
+:root {
+      --cell: 48px;
+      --key-h: 50px;
+      --keypad-w: 260px;
       --border: #444;
-      --header: #f3f5f7;
+      --header-bg: #f3f5f7;
       --correct: #e8f7e8;
       --wrong: #ffeaea;
+      --focus: #d62828;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html, body {
-      overscroll-behavior: none;
+      margin: 0;
+      width: 100vw;
+      height: 100svh;
+      overflow: hidden;
+      background: #fafafa;
+      color: #222;
+      font-family: "M PLUS Rounded 1c", system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
       -webkit-text-size-adjust: 100%;
     }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   "Noto Sans JP", sans-serif;
-      background: #fafafa;
-      color: #222;
-      min-height: 100vh;
-      min-height: 100dvh;
+      overscroll-behavior: none;
     }
 
     .app {
-      width: min(100%, 860px);
-      margin: 0 auto;
-      padding: max(20px, env(safe-area-inset-top)) 12px
-               max(40px, env(safe-area-inset-bottom));
+      width: 100vw;
+      height: 100svh;
+      padding:
+        max(14px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .header {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3px;
+      align-items: center;
+      justify-items: center;
     }
 
     h1 {
-      margin: 0 0 14px;
-      text-align: center;
-      font-size: clamp(24px, 5vw, 38px);
+      margin: 0;
+      font-size: clamp(18px, 3vw, 30px);
+      line-height: 1;
     }
 
     .controls {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
     }
 
-    button, select {
+    label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    select, button {
       font: inherit;
-      padding: 10px 16px;
+    }
+
+    select {
+      padding: 6px 8px;
       border: 1px solid #bbb;
-      border-radius: 10px;
-      background: white;
+      border-radius: 8px;
+      background: #fff;
     }
 
     button {
-      cursor: pointer;
-      font-weight: 700;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      background: #fff;
+      font-weight: 800;
       touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .main-btn {
+      padding: 7px 10px;
     }
 
     #startBtn {
       background: #222;
-      color: white;
+      color: #fff;
       border-color: #222;
     }
 
     .timer {
-      text-align: center;
       font-variant-numeric: tabular-nums;
-      font-weight: 800;
-      font-size: clamp(28px, 7vw, 48px);
-      margin: 8px 0 16px;
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 900;
+      line-height: 1;
     }
 
     .status {
-      min-height: 1.5em;
-      text-align: center;
+      min-height: 1.1em;
+      font-size: 13px;
       font-weight: 700;
-      margin-bottom: 12px;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    /* ===== メイン領域 ===== */
+    .work-area {
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* 縦向き:
+       [盤面]
+       [テンキー] */
+    @media (orientation: portrait) {
+      .work-area {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        row-gap: 12px;
+        padding: 4px 0 10px;
+      }
+
+      .board-wrap {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .keypad {
+        grid-column: 1;
+        grid-row: 2;
+        width: min(94%, 620px);
+        justify-self: center;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+    }
+
+    /* 横向き:
+       [盤面][テンキー] */
+    @media (orientation: landscape) {
+      .header {
+        grid-template-columns: auto 1fr auto auto;
+        gap: 8px;
+        justify-items: stretch;
+      }
+
+      .header h1 {
+        white-space: nowrap;
+        font-size: clamp(16px, 2vw, 24px);
+      }
+
+      .controls {
+        justify-content: center;
+      }
+
+      .timer {
+        white-space: nowrap;
+        font-size: clamp(20px, 2.5vw, 30px);
+      }
+
+      .status {
+        white-space: nowrap;
+        align-self: center;
+      }
+
+      .work-area {
+        grid-template-columns: auto var(--keypad-w);
+        grid-template-rows: minmax(0, 1fr);
+        column-gap: 14px;
+        padding: 8px 20px 10px;
+        justify-content: center;
+      }
+
+      .board-wrap {
+        grid-column: 1;
+        grid-row: 1;
+        width: auto;
+        height: 100%;
+      }
+
+      .keypad {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     .board-wrap {
+      min-width: 0;
+      min-height: 0;
       width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
     }
 
     table {
       border-collapse: collapse;
-      margin: 0 auto;
-      background: white;
+      table-layout: fixed;
+      background: #fff;
+      margin: 0;
     }
 
     th, td {
       width: var(--cell);
+      min-width: var(--cell);
+      max-width: var(--cell);
       height: var(--cell);
-      border: 1px solid var(--border);
+      min-height: var(--cell);
+      max-height: var(--cell);
       padding: 0;
+      border: 1px solid var(--border);
       text-align: center;
+      position: relative;
     }
 
     th {
-      background: var(--header);
-      font-weight: 800;
-      font-size: clamp(14px, 2.8vw, 20px);
+      background: var(--header-bg);
+      font-weight: 900;
+      font-size: clamp(12px, calc(var(--cell) * 0.38), 22px);
       user-select: none;
     }
 
     .corner {
       background: #222;
-      color: white;
-      font-size: clamp(18px, 3vw, 24px);
+      color: #fff;
     }
 
     .answer {
       width: 100%;
       height: 100%;
+      padding: 0;
       border: 0;
       outline: 0;
-      text-align: center;
-      font: inherit;
-      font-weight: 700;
-      font-size: clamp(14px, 3vw, 20px);
-      background: transparent;
-      appearance: textfield;
-      -moz-appearance: textfield;
       border-radius: 0;
+      background: transparent;
+      text-align: center;
+      font-size: clamp(12px, calc(var(--cell) * 0.40), 24px);
+      font-weight: 800;
+      caret-color: transparent;
+      cursor: pointer;
     }
 
-    .answer::-webkit-inner-spin-button,
-    .answer::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    td.focused::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border: 4px solid var(--focus);
+      pointer-events: none;
+      z-index: 5;
     }
 
     td.correct { background: var(--correct); }
     td.wrong { background: var(--wrong); }
 
-    .hint {
-      text-align: center;
-      margin-top: 14px;
-      color: #666;
-      font-size: 14px;
+    /* ===== テンキー ===== */
+    .keypad {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+      align-content: center;
     }
 
-    @media (max-width: 560px) {
-      :root { --cell: 44px; }
-      .app { padding-left: 6px; padding-right: 6px; }
+    .key {
+      width: 100%;
+      min-width: 0;
+      height: var(--key-h);
+      min-height: 0;
+      padding: 0;
+      font-size: clamp(18px, 3vw, 28px);
+      background: #fff;
     }
+
+    .key:active {
+      transform: translateY(1px);
+      background: #eee;
+    }
+
+    .key-delete {
+      grid-column: span 2;
+      font-size: clamp(16px, 2.5vw, 22px);
+    }
+
+    .key[disabled] {
+      opacity: .4;
+    }
+
+:root {
+      --border: #6f6a92;
+      --header-bg: #bfeeff;
+      --correct: #dff8d8;
+      --wrong: #ffe0e5;
+      --focus: #ff3b5c;
+    }
+
+    html, body {
+      background:
+        radial-gradient(circle at 8% 8%, rgba(255, 222, 89, .42), transparent 24%),
+        radial-gradient(circle at 92% 10%, rgba(255, 146, 196, .32), transparent 24%),
+        radial-gradient(circle at 10% 92%, rgba(118, 220, 255, .30), transparent 24%),
+        linear-gradient(180deg, #fff9da 0%, #fff0f6 100%);
+      color: #34334a;
+    }
+
+    .header {
+      background: rgba(255,255,255,.76);
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(70, 60, 110, .10);
+    }
+
+    h1 {
+      color: #ff5f7e;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-shadow: 0 2px 0 rgba(255,255,255,.95);
+    }
+
+    label {
+      color: #545184;
+      font-weight: 800;
+    }
+
+    select {
+      background: #ffffff;
+      border-color: #9ed9ff;
+      color: #3d4770;
+      font-weight: 800;
+      box-shadow: 0 2px 5px rgba(70, 80, 130, .08);
+    }
+
+    #startBtn {
+      background: linear-gradient(180deg, #ffb44a 0%, #ff8b3d 100%);
+      border-color: #ff8b3d;
+      color: #fff;
+      box-shadow: 0 3px 7px rgba(255, 139, 61, .22);
+    }
+
+    #pauseBtn {
+      background: linear-gradient(180deg, #68d4ff 0%, #43b8f4 100%);
+      border-color: #43b8f4;
+      color: #fff;
+      box-shadow: 0 3px 7px rgba(67, 184, 244, .18);
+    }
+
+    #pauseBtn:disabled {
+      background: #d8e1ea;
+      border-color: #c9d2db;
+      color: #7b8590;
+      box-shadow: none;
+    }
+
+    .timer {
+      color: #5b59d9;
+      text-shadow: 0 2px 0 rgba(255,255,255,.95);
+    }
+
+    .status {
+      color: #7058a5;
+      font-weight: 800;
+    }
+
+    table {
+      box-shadow: 0 5px 16px rgba(70, 60, 110, .13);
+    }
+
+    th {
+      background: linear-gradient(180deg, #d5f5ff 0%, #bceaff 100%);
+      color: #304d73;
+      font-size: clamp(15px, calc(var(--cell) * 0.44), 28px);
+      font-weight: 900;
+    }
+
+    .corner {
+      background: linear-gradient(180deg, #ff9f65 0%, #ff7b55 100%);
+      color: #fff;
+    }
+
+    .answer {
+      background: #fffef9;
+      color: #393653;
+      font-size: clamp(18px, calc(var(--cell) * 0.48), 34px);
+      font-weight: 900;
+    }
+
+    td.correct .answer {
+      background: #e5fbdc;
+    }
+
+    td.wrong .answer {
+      background: #ffe3e8;
+    }
+
+    td.focused::after {
+      border-color: #ff3b5c;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.9);
+    }
+
+    .key {
+      color: #3d3b52;
+      font-size: clamp(23px, 3.8vw, 35px);
+      font-weight: 900;
+      border-color: rgba(255,255,255,.9);
+      box-shadow: 0 3px 7px rgba(70, 60, 110, .11);
+    }
+
+    .key:nth-child(1)  { background: #ffd29e; }
+    .key:nth-child(2)  { background: #fff0a6; }
+    .key:nth-child(3)  { background: #c8f3b8; }
+    .key:nth-child(4)  { background: #b8edff; }
+    .key:nth-child(5)  { background: #d3c8ff; }
+    .key:nth-child(6)  { background: #ffcbee; }
+    .key:nth-child(7)  { background: #ffc6d2; }
+    .key:nth-child(8)  { background: #c9f1d6; }
+    .key:nth-child(9)  { background: #ffe7a7; }
+    .key:nth-child(10) { background: #cce6ff; }
+
+    .key:active {
+      filter: brightness(.96);
+      transform: translateY(1px) scale(.98);
+    }
+
+    .key[disabled] {
+      opacity: .42;
+      filter: saturate(.5);
+    }
+
+    .key-delete {
+      background: linear-gradient(180deg, #ff9bb1 0%, #ff7895 100%) !important;
+    }
+
+    /* CSS-only eraser illustration. No external image and no layout-size changes. */
+    .eraser {
+      display: inline-block;
+      width: min(54%, 58px);
+      aspect-ratio: 1.9 / 1;
+      position: relative;
+      vertical-align: middle;
+      border: 2px solid rgba(89, 71, 82, .40);
+      border-radius: 7px;
+      background:
+        linear-gradient(135deg,
+          #ffb1c5 0 55%,
+          #fff0b8 55% 100%);
+      transform: rotate(-10deg);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.45),
+        0 2px 4px rgba(80,60,80,.14);
+    }
+
+    .eraser::after {
+      content: "";
+      position: absolute;
+      top: 8%;
+      bottom: 8%;
+      right: 27%;
+      width: 2px;
+      background: rgba(89, 71, 82, .24);
+    }
+
+/* Header contents may wrap instead of overflowing. */
+    .header {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .controls {
+      width: 100%;
+      min-width: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+      white-space: normal;
+      row-gap: 6px;
+      column-gap: 8px;
+    }
+
+    .controls label,
+    .controls button {
+      flex: 0 0 auto;
+      max-width: 100%;
+    }
+
+    .timer,
+    .status {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* In landscape, keep the header compact but allow items to drop rows if needed. */
+    @media (orientation: landscape) {
+      .header {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .header h1,
+      .timer,
+      .status {
+        white-space: normal;
+        text-align: center;
+      }
+
+      .controls {
+        justify-content: center;
+      }
+    }
+
+    /* Thin border around all keypad buttons. */
+    .key {
+      border: 1px solid rgba(72, 72, 95, .38) !important;
+    }
+
+    .key-delete {
+      border: 1px solid rgba(120, 65, 80, .42) !important;
+    }
+
+.header {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 10px 14px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .controls {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .controls label,
+    .controls .main-btn {
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    /* 縦向き
+       [マス選択][計算選択]
+       [スタート][一時停止]
+       [タイマー]
+    */
+    @media (orientation: portrait) {
+      .header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .header h1 {
+        margin-bottom: 2px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+        max-width: 620px;
+        justify-items: stretch;
+        align-items: center;
+      }
+
+      .controls label {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .controls label select {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      #startBtn,
+      #pauseBtn {
+        width: 100%;
+      }
+
+      .timer {
+        grid-column: 1 / -1;
+        width: 100%;
+        text-align: center;
+        margin-top: 2px;
+      }
+
+      .status {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    /* 横向き
+       [マス選択][計算選択][スタート][一時停止][タイマー]
+    */
+    @media (orientation: landscape) {
+      .header {
+        display: grid;
+        grid-template-columns: auto;
+        justify-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+      }
+
+      .header h1 {
+        margin-bottom: 1px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: nowrap;
+        width: auto;
+        max-width: calc(100vw - 48px);
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .controls label,
+      .controls .main-btn {
+        flex: 0 0 auto;
+      }
+
+      .timer {
+        width: auto;
+        min-width: 150px;
+        text-align: center;
+        margin-left: 4px;
+      }
+
+      .status {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    @media (orientation: landscape) and (max-width: 900px) {
+      .controls {
+        gap: 6px;
+      }
+
+      .controls label {
+        font-size: 13px;
+      }
+
+      select {
+        padding: 6px 7px;
+      }
+
+      .main-btn {
+        padding: 7px 9px;
+      }
+
+      .timer {
+        min-width: 128px;
+        font-size: clamp(22px, 3vw, 30px);
+      }
+    }
+
+html, body,
+    button, select, input, textarea {
+      font-family: "M PLUS Rounded 1c", system-ui, -apple-system,
+                   BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+/* テンキー間隔を少し広げる */
+    .keypad {
+      gap: 7px;
+    }
+
+    /* フォーカス中の縦横見出し */
+    th.active-header {
+      background: linear-gradient(180deg, #fff2a6 0%, #ffd96b 100%) !important;
+      color: #5b4718 !important;
+      box-shadow: inset 0 0 0 2px rgba(255, 166, 0, .55);
+    }
+
+    /* 誤答時の短い揺れ。レイアウト寸法は変えない */
+    td.wrong-flash {
+      animation: wrongShake .28s ease-in-out;
+    }
+
+    @keyframes wrongShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    /* カウントダウン・完了演出は fixed overlay なので既存レイアウトに影響しない */
+    .screen-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .48);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      pointer-events: none;
+    }
+
+    .screen-overlay[hidden] {
+      display: none;
+    }
+
+    .countdown-text {
+      font-size: clamp(88px, 22vw, 210px);
+      font-weight: 900;
+      line-height: 1;
+      color: #ff5f7e;
+      text-shadow:
+        0 5px 0 #fff,
+        0 9px 18px rgba(90, 70, 120, .18);
+      animation: countdownPop .72s ease both;
+    }
+
+    @keyframes countdownPop {
+      0%   { transform: scale(.45); opacity: 0; }
+      38%  { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .celebration-overlay {
+      background: rgba(255, 248, 224, .62);
+    }
+
+    .celebration-card {
+      position: relative;
+      z-index: 2;
+      min-width: min(78vw, 420px);
+      padding: 26px 34px;
+      text-align: center;
+      background: rgba(255,255,255,.94);
+      border: 4px solid #fff;
+      border-radius: 28px;
+      box-shadow: 0 12px 40px rgba(80, 60, 120, .20);
+      animation: finishPop .42s cubic-bezier(.2,.9,.3,1.25) both;
+    }
+
+    .celebration-title {
+      font-size: clamp(42px, 9vw, 82px);
+      font-weight: 900;
+      color: #ff5f7e;
+      line-height: 1;
+    }
+
+    .celebration-time {
+      margin-top: 12px;
+      font-size: clamp(30px, 6vw, 54px);
+      font-weight: 900;
+      color: #5b59d9;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .celebration-best {
+      min-height: 1.2em;
+      margin-top: 8px;
+      font-size: clamp(18px, 3vw, 28px);
+      font-weight: 900;
+      color: #ff9a2f;
+    }
+
+    @keyframes finishPop {
+      from { transform: scale(.68) rotate(-2deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .confetti-layer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -12vh;
+      width: 11px;
+      height: 20px;
+      border-radius: 3px;
+      opacity: .92;
+      animation: confettiFall var(--duration) linear var(--delay) forwards;
+      transform: rotate(var(--rotate));
+    }
+
+    @keyframes confettiFall {
+      to {
+        transform:
+          translate3d(var(--drift), 120vh, 0)
+          rotate(calc(var(--rotate) + 720deg));
+      }
+    }
+
+.countdown-text {
+      width: 100%;
+      max-width: 100vw;
+      text-align: center;
+      white-space: nowrap;
+      transform-origin: 50% 50%;
+      justify-self: stretch;
+    }
+
+.player-tools {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px 8px;
+    }
+
+    .player-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    #playerSelect {
+      min-width: 110px;
+      max-width: 180px;
+    }
+
+    .mini-btn {
+      padding: 6px 10px;
+      border-radius: 11px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .records-btn {
+      background: linear-gradient(180deg, #ffe783, #ffd255);
+      border-color: #e0b73f;
+      color: #5c4610;
+    }
+
+    @media (orientation: landscape) {
+      .player-tools {
+        gap: 5px 7px;
+      }
+
+      .mini-btn {
+        padding: 5px 9px;
+        font-size: 12px;
+      }
+    }
+
+    .celebration-rank {
+      min-height: 1.2em;
+      margin-top: 6px;
+      font-size: clamp(17px, 2.8vw, 25px);
+      font-weight: 900;
+      color: #5b59d9;
+    }
+
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1400;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(49, 43, 72, .38);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .app-modal[hidden] {
+      display: none;
+    }
+
+    .modal-panel {
+      width: min(92vw, 680px);
+      max-height: min(88svh, 760px);
+      overflow: hidden;
+      background: #fffdf8;
+      border: 4px solid #fff;
+      border-radius: 24px;
+      box-shadow: 0 16px 48px rgba(60, 45, 90, .25);
+      color: #38354e;
+    }
+
+    .name-panel {
+      width: min(90vw, 420px);
+      padding: 24px;
+    }
+
+    .modal-title {
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.1;
+      font-weight: 900;
+      color: #ff5f7e;
+    }
+
+    .name-input {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px 14px;
+      border: 2px solid #b9dff8;
+      border-radius: 14px;
+      outline: none;
+      background: #fff;
+      color: #38354e;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .name-input:focus {
+      border-color: #ff7e99;
+      box-shadow: 0 0 0 3px rgba(255, 126, 153, .18);
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .modal-btn {
+      padding: 11px 14px;
+      font-size: 16px;
+    }
+
+    .modal-btn.primary {
+      background: linear-gradient(180deg, #ffb24f, #ff8c42);
+      border-color: #ff8c42;
+      color: #fff;
+    }
+
+    .modal-btn.secondary {
+      background: #edf3f8;
+      border-color: #ccd9e3;
+      color: #536170;
+    }
+
+    .records-panel {
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .records-header,
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .records-condition {
+      margin-top: 4px;
+      color: #6e6884;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 50%;
+      background: #f1edf7;
+      color: #655d77;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #59517a;
+    }
+
+    .ranking-list {
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .ranking-row {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid #e6dfe9;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .ranking-row.rank-1 { background: #fff5bd; }
+    .ranking-row.rank-2 { background: #eef3f7; }
+    .ranking-row.rank-3 { background: #f7e4d3; }
+
+    .rank-no,
+    .rank-time {
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rank-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .history-section {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .history-list {
+      min-height: 0;
+      overflow-y: auto;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      padding-right: 2px;
+    }
+
+    .history-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid #ece6ef;
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .history-main {
+      min-width: 0;
+    }
+
+    .history-name {
+      font-weight: 900;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .history-date {
+      margin-top: 2px;
+      color: #8a8497;
+      font-size: 11px;
+    }
+
+    .history-time {
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: #5652bf;
+      white-space: nowrap;
+    }
+
+    .delete-record-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 10px;
+      background: #ffe8ec;
+      border-color: #ffc8d1;
+      color: #c94f68;
+      font-size: 16px;
+    }
+
+    .danger-mini-btn {
+      padding: 5px 9px;
+      background: #fff0f2;
+      border-color: #ffc6d0;
+      color: #c34c62;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      padding: 14px 8px;
+      text-align: center;
+      color: #9991a4;
+      font-weight: 700;
+    }
+
+    @media (max-height: 650px) and (orientation: landscape) {
+      .player-tools {
+        margin-top: -1px;
+      }
+
+      .records-panel {
+        max-height: 94svh;
+      }
+    }
+
+.app-modal, .app-modal button, .app-modal input,
+    .player-tools, .player-tools button, .player-tools select {
+      font-family: "M PLUS Rounded 1c", system-ui, -apple-system,
+                   BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+.name-input::placeholder {
+      color: #c7cbd1;
+      opacity: 1;
+      font-weight: 500;
+    }
+
+/* スマホ横向きだけ:
+       [ヘッダー][マス目][キーボード]
+       の3カラム横並びにする。 */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .app {
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-columns: var(--phone-header-w, 210px) minmax(0, 1fr);
+        column-gap: 8px;
+        align-items: stretch;
+      }
+
+      .header {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 8px 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      .header h1 {
+        text-align: center;
+      }
+
+      .controls {
+        width: 100%;
+        max-width: none;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .controls label,
+      #startBtn,
+      #pauseBtn,
+      .timer {
+        width: 100%;
+      }
+
+      .controls label {
+        justify-content: space-between;
+      }
+
+      .timer {
+        margin: 0;
+        text-align: center;
+        min-width: 0;
+      }
+
+      .status {
+        width: 100%;
+        text-align: center;
+        white-space: normal;
+      }
+
+      .player-tools {
+        width: 100%;
+        max-width: none;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
+      .player-label,
+      #addPlayerBtn,
+      #recordsBtn {
+        width: 100%;
+      }
+
+      .work-area {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--phone-keypad-w, 170px);
+        grid-template-rows: minmax(0, 1fr);
+        column-gap: 8px;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .board-wrap {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      .keypad {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+    }
+  
+    /* Header title logo */
+    .app-title {
+      margin: 0;
+      line-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .title-logo {
+      display: block;
+      width: auto;
+      height: clamp(44px, 6vw, 64px);
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    @media (orientation: landscape) {
+      .title-logo {
+        height: clamp(34px, 4.2vw, 50px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 600px) {
+      .title-logo {
+        height: clamp(34px, 9vh, 48px);
+        max-width: 100%;
+      }
+    }
+
+  
+    /* Smartphone landscape stability fix only */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .header {
+        padding: 6px;
+        gap: 4px;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .app-title {
+        flex: 0 0 auto;
+        min-height: 34px;
+        width: 100%;
+      }
+
+      .title-logo {
+        display: block;
+        height: 36px;
+        width: auto;
+        max-width: 96%;
+        object-fit: contain;
+        flex: 0 0 auto;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 4px 6px;
+        width: 100%;
+      }
+
+      .controls label {
+        width: 100%;
+        min-width: 0;
+        justify-content: space-between;
+        gap: 3px;
+        font-size: 11px;
+      }
+
+      .controls label select {
+        min-width: 0;
+        max-width: 72px;
+        padding: 4px 5px;
+        font-size: 11px;
+      }
+
+      #startBtn,
+      #pauseBtn {
+        width: 100%;
+        padding: 5px 4px;
+        font-size: 11px;
+      }
+
+      .timer {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-width: 0;
+        font-size: 23px;
+        line-height: 1;
+      }
+
+      .status {
+        width: 100%;
+        min-height: 1em;
+        font-size: 10px;
+        line-height: 1.1;
+        white-space: normal;
+      }
+
+      .player-tools {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 4px 6px;
+        width: 100%;
+      }
+
+      .player-label {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-width: 0;
+        justify-content: space-between;
+        font-size: 11px;
+      }
+
+      #playerSelect {
+        min-width: 0;
+        max-width: 110px;
+        padding: 4px 5px;
+        font-size: 11px;
+      }
+
+      #addPlayerBtn,
+      #recordsBtn {
+        width: 100%;
+        padding: 5px 3px;
+        font-size: 10px;
+      }
+
+      .board-wrap {
+        padding: 8px;
+      }
+    }
+
+  
+    /* Countdown: keep the grid visible, but reveal row/column numbers only at the actual start. */
+    #board tbody.problem-numbers-hidden th:not(.corner) {
+      color: transparent !important;
+      text-shadow: none !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+  
+    /* Name manager */
+    .name-manager-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .name-section-title {
+      margin-top: 16px;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #645d7a;
+    }
+
+    .player-manage-list {
+      display: grid;
+      gap: 7px;
+      max-height: min(34svh, 260px);
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .player-manage-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .player-choice-btn {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid #dcd7e7;
+      background: #fff;
+      color: #47415c;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-choice-btn.current {
+      background: linear-gradient(180deg, #dff5ff, #c9ecff);
+      border-color: #86ccef;
+      color: #334f6f;
+      box-shadow: inset 0 0 0 2px rgba(98, 190, 235, .15);
+    }
+
+    .player-choice-btn.current::before {
+      content: "● ";
+      color: #4eb4e8;
+    }
+
+    .player-delete-btn {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 11px;
+      border: 1px solid #ffc5d0;
+      background: #ffecef;
+      color: #c94e67;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .player-delete-btn:disabled {
+      opacity: .35;
+      filter: grayscale(.25);
+    }
+
+    .name-add-area {
+      margin-top: 4px;
+      padding-top: 2px;
+      border-top: 1px dashed #dfd9e6;
+    }
+
+    .name-add-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .name-add-row .name-input {
+      margin-top: 0;
+      min-width: 0;
+    }
+
+    .name-add-row .modal-btn {
+      min-width: 88px;
+    }
+
+    @media (orientation: landscape) and (max-height: 600px) {
+      .name-panel {
+        max-height: 94svh;
+        padding: 14px;
+      }
+
+      .player-manage-list {
+        max-height: 26svh;
+      }
+
+      .name-section-title {
+        margin-top: 9px;
+        margin-bottom: 5px;
+      }
+
+      .name-input {
+        padding: 8px 10px;
+        font-size: 17px;
+      }
+
+      .player-choice-btn {
+        padding: 7px 9px;
+      }
+
+      .player-delete-btn {
+        width: 34px;
+        height: 34px;
+      }
+    }
+
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>100マス計算</h1>
+    <header class="header">
+      <h1 class="app-title"><img class="title-logo" src="./title-logo-v2.png" alt="100マス計算"></h1>
 
-    <div class="controls">
-      <label>
-        計算：
-        <select id="operation">
-          <option value="+">たし算</option>
-          <option value="-">ひき算</option>
-          <option value="*">かけ算</option>
-        </select>
-      </label>
-      <button id="startBtn" type="button">スタート</button>
-      <button id="pauseBtn" type="button" disabled>一時停止</button>
-    </div>
+      <div class="controls">
+        <label>
+          マス：
+          <select id="gridSize">
+            <option value="5">5 × 5</option>
+            <option value="7">7 × 7</option>
+            <option value="10" selected>10 × 10</option>
+          </select>
+        </label>
 
-    <div id="timer" class="timer">00:00.00</div>
-    <div id="status" class="status">「スタート」を押してください</div>
+        <label>
+          計算：
+          <select id="operation">
+            <option value="+">たし算</option>
+            <option value="-">ひき算</option>
+            <option value="*">かけ算</option>
+          </select>
+        </label>
 
-    <div class="board-wrap">
-      <table id="board" aria-label="100マス計算">
-        <tbody></tbody>
-      </table>
-    </div>
+        <button id="startBtn" class="main-btn" type="button">スタート</button>
+        <button id="pauseBtn" class="main-btn" type="button" disabled>一時停止</button>
+        <div id="timer" class="timer">00:00.00</div>
+      </div>
+      <div id="status" class="status">「スタート」を押してください</div>
 
-    <div class="hint">
-      正解すると次のマスへ自動で進みます。100問すべて正解するとタイマーが止まります。
-    </div>
+      <div class="player-tools">
+        <label class="player-label">
+          なまえ：
+          <select id="playerSelect" aria-label="プレイヤー名"></select>
+        </label>
+        <button id="addPlayerBtn" class="mini-btn" type="button">👤 なまえ</button>
+        <button id="recordsBtn" class="mini-btn records-btn" type="button">🏆 きろく</button>
+      </div>
+    </header>
+
+    <section class="work-area">
+      <div class="board-wrap">
+        <table id="board" aria-label="マス計算">
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="keypad" class="keypad" aria-label="数字入力">
+        <button class="key" data-key="1" type="button">1</button>
+        <button class="key" data-key="2" type="button">2</button>
+        <button class="key" data-key="3" type="button">3</button>
+        <button class="key" data-key="4" type="button">4</button>
+        <button class="key" data-key="5" type="button">5</button>
+        <button class="key" data-key="6" type="button">6</button>
+        <button class="key" data-key="7" type="button">7</button>
+        <button class="key" data-key="8" type="button">8</button>
+        <button class="key" data-key="9" type="button">9</button>
+        <button class="key" data-key="0" type="button">0</button>
+        <button class="key key-delete" data-key="delete" type="button" aria-label="削除">
+          <span class="eraser" aria-hidden="true"></span>
+        </button>
+      </div>
+    </section>
   </main>
+
+  <div id="countdownOverlay" class="screen-overlay" aria-live="assertive" hidden>
+    <div id="countdownText" class="countdown-text">3</div>
+  </div>
+
+  <div id="celebrationOverlay" class="screen-overlay celebration-overlay" aria-live="polite" hidden>
+    <div class="celebration-card">
+      <div class="celebration-title">できた！</div>
+      <div id="celebrationTime" class="celebration-time">00:00.00</div>
+      <div id="celebrationBest" class="celebration-best"></div>
+      <div id="celebrationRank" class="celebration-rank"></div>
+    </div>
+    <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+  </div>
+
+
+  <div id="nameModal" class="app-modal" hidden>
+    <div class="modal-panel name-panel" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
+      <div class="name-manager-head">
+        <div id="nameModalTitle" class="modal-title">👤 なまえ</div>
+        <button id="cancelNameBtn" type="button" class="close-btn" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="name-section-title">なまえをえらぶ</div>
+      <div id="playerManageList" class="player-manage-list"></div>
+
+      <div class="name-add-area">
+        <div class="name-section-title">あたらしいなまえ</div>
+        <div class="name-add-row">
+          <input id="newPlayerName" class="name-input" type="text" maxlength="12"
+                 autocomplete="off" placeholder="なまえ" />
+          <button id="saveNameBtn" type="button" class="modal-btn primary">とうろく</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="recordsModal" class="app-modal" hidden>
+    <div class="modal-panel records-panel" role="dialog" aria-modal="true" aria-labelledby="recordsModalTitle">
+      <div class="records-header">
+        <div>
+          <div id="recordsModalTitle" class="modal-title">🏆 きろく</div>
+          <div id="recordsCondition" class="records-condition"></div>
+        </div>
+        <button id="closeRecordsBtn" class="close-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+
+      <section class="ranking-section">
+        <div class="section-title">ランキング TOP 5</div>
+        <div id="rankingList" class="ranking-list"></div>
+      </section>
+
+      <section class="history-section">
+        <div class="history-head">
+          <div class="section-title">さいきんのきろく</div>
+          <button id="clearRecordsBtn" class="danger-mini-btn" type="button">この条件を消す</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </div>
+  </div>
 
   <script>
     const board = document.querySelector("#board tbody");
@@ -202,27 +1694,66 @@
     const timerEl = document.querySelector("#timer");
     const statusEl = document.querySelector("#status");
     const operationEl = document.querySelector("#operation");
+    const gridSizeEl = document.querySelector("#gridSize");
+    const keypad = document.querySelector("#keypad");
+    const workArea = document.querySelector(".work-area");
+    const countdownOverlay = document.querySelector("#countdownOverlay");
+    const countdownText = document.querySelector("#countdownText");
+    const celebrationOverlay = document.querySelector("#celebrationOverlay");
+    const celebrationTime = document.querySelector("#celebrationTime");
+    const celebrationBest = document.querySelector("#celebrationBest");
+    const celebrationRank = document.querySelector("#celebrationRank");
+    const confettiLayer = document.querySelector("#confettiLayer");
+
+    const playerSelect = document.querySelector("#playerSelect");
+    const addPlayerBtn = document.querySelector("#addPlayerBtn");
+    const recordsBtn = document.querySelector("#recordsBtn");
+
+    const nameModal = document.querySelector("#nameModal");
+    const playerManageList = document.querySelector("#playerManageList");
+    const newPlayerName = document.querySelector("#newPlayerName");
+    const cancelNameBtn = document.querySelector("#cancelNameBtn");
+    const saveNameBtn = document.querySelector("#saveNameBtn");
+
+    const recordsModal = document.querySelector("#recordsModal");
+    const closeRecordsBtn = document.querySelector("#closeRecordsBtn");
+    const recordsCondition = document.querySelector("#recordsCondition");
+    const rankingList = document.querySelector("#rankingList");
+    const historyList = document.querySelector("#historyList");
+    const clearRecordsBtn = document.querySelector("#clearRecordsBtn");
 
     let rowNumbers = [];
     let colNumbers = [];
+    let activeInput = null;
+
     let startedAt = 0;
     let elapsedBeforePause = 0;
     let timerId = null;
+    let countdownTimer = null;
     let running = false;
     let paused = false;
+    let countingDown = false;
+    let correctCount = 0;
 
-    function shuffle1to10() {
-      const arr = Array.from({ length: 10 }, (_, i) => i + 1);
-      for (let i = arr.length - 1; i > 0; i--) {
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        [copy[i], copy[j]] = [copy[j], copy[i]];
       }
-      return arr;
+      return copy;
+    }
+
+    function createHeaders(size) {
+      if (size === 10) {
+        return shuffle(Array.from({ length: 10 }, (_, i) => i + 1));
+      }
+      return shuffle(Array.from({ length: 9 }, (_, i) => i + 1)).slice(0, size);
     }
 
     function calc(a, b) {
       switch (operationEl.value) {
-        case "-": return a - b;
+        case "-": return Math.abs(a - b);
         case "*": return a * b;
         default: return a + b;
       }
@@ -247,6 +1778,530 @@
              String(hundredths).padStart(2, "0");
     }
 
+
+    function totalQuestions() {
+      const size = Number(gridSizeEl.value);
+      return size * size;
+    }
+
+    const STORAGE_KEY = "masu-keisan-data-v2";
+    const LEGACY_STORAGE_KEY = "masu-keisan-data-v1";
+    const MAX_HISTORY = 50;
+
+    function normalizeRecord(record) {
+      if (!record || typeof record.name !== "string") return null;
+
+      const size = Number(record.size);
+      const time = Number(record.time);
+      const operation = String(record.operation || "");
+
+      if (!Number.isFinite(size) || !Number.isFinite(time)) return null;
+      if (!["+", "-", "*"].includes(operation)) return null;
+
+      return {
+        id: typeof record.id === "string" ? record.id : "",
+        name: record.name.trim() || "ゲスト",
+        size,
+        operation,
+        time: Math.max(0, Math.round(time)),
+        date: typeof record.date === "string" ? record.date : ""
+      };
+    }
+
+    function bestRecordKey(record) {
+      return `${record.name}\u0000${record.size}\u0000${record.operation}`;
+    }
+
+    function mergeBestRecords(...recordGroups) {
+      const bestMap = new Map();
+
+      recordGroups.flat().forEach(raw => {
+        const record = normalizeRecord(raw);
+        if (!record) return;
+
+        const key = bestRecordKey(record);
+        const old = bestMap.get(key);
+        if (!old || record.time < old.time) {
+          bestMap.set(key, record);
+        }
+      });
+
+      return [...bestMap.values()];
+    }
+
+    function loadAppData() {
+      try {
+        const raw =
+          localStorage.getItem(STORAGE_KEY) ||
+          localStorage.getItem(LEGACY_STORAGE_KEY);
+
+        if (!raw) {
+          return {
+            players: ["ゲスト"],
+            currentPlayer: "ゲスト",
+            records: [],
+            bestRecords: []
+          };
+        }
+
+        const parsed = JSON.parse(raw);
+        const players = Array.isArray(parsed.players) && parsed.players.length
+          ? parsed.players
+              .filter(v => typeof v === "string" && v.trim())
+              .map(v => v.trim())
+          : ["ゲスト"];
+
+        // Migration note:
+        // v1 used records for both history and rankings.  Derive permanent bests
+        // from every record still available before trimming recent history.
+        const allRecords = Array.isArray(parsed.records)
+          ? parsed.records.map(normalizeRecord).filter(Boolean)
+          : [];
+
+        const storedBests = Array.isArray(parsed.bestRecords)
+          ? parsed.bestRecords.map(normalizeRecord).filter(Boolean)
+          : [];
+
+        const bestRecords = mergeBestRecords(storedBests, allRecords);
+        const records = allRecords.slice(0, MAX_HISTORY);
+
+        const currentPlayer =
+          typeof parsed.currentPlayer === "string" &&
+          players.includes(parsed.currentPlayer)
+            ? parsed.currentPlayer
+            : players[0];
+
+        return { players, currentPlayer, records, bestRecords };
+      } catch {
+        return {
+          players: ["ゲスト"],
+          currentPlayer: "ゲスト",
+          records: [],
+          bestRecords: []
+        };
+      }
+    }
+
+    let appData = loadAppData();
+
+    function saveAppData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    // Persist migrated v1 data immediately under the v2 key.
+    saveAppData();
+
+    function currentPlayerName() {
+      return appData.currentPlayer || "ゲスト";
+    }
+
+    function renderPlayerSelect() {
+      playerSelect.innerHTML = "";
+
+      appData.players.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        playerSelect.appendChild(option);
+      });
+
+      if (!appData.players.includes(appData.currentPlayer)) {
+        appData.currentPlayer = appData.players[0] || "ゲスト";
+      }
+
+      playerSelect.value = appData.currentPlayer;
+    }
+
+    function conditionMatches(record) {
+      return Number(record.size) === Number(gridSizeEl.value) &&
+             record.operation === operationEl.value;
+    }
+
+    function currentConditionRecords() {
+      return appData.records.filter(conditionMatches);
+    }
+
+    function currentConditionBestRecords() {
+      return appData.bestRecords.filter(conditionMatches);
+    }
+
+    function getPersonalBest(name = currentPlayerName()) {
+      const best = currentConditionBestRecords().find(
+        record => record.name === name
+      );
+      return best ? Number(best.time) : null;
+    }
+
+    function getRanking() {
+      return currentConditionBestRecords()
+        .map(record => ({
+          name: record.name,
+          time: Number(record.time)
+        }))
+        .filter(item => Number.isFinite(item.time))
+        .sort((a, b) => a.time - b.time);
+    }
+
+    function getCurrentRank() {
+      const ranking = getRanking();
+      const index = ranking.findIndex(item => item.name === currentPlayerName());
+      return index >= 0 ? index + 1 : null;
+    }
+
+    function addRecord(ms) {
+      const record = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        name: currentPlayerName(),
+        size: Number(gridSizeEl.value),
+        operation: operationEl.value,
+        time: Math.round(ms),
+        date: new Date().toISOString()
+      };
+
+      const previousBest = getPersonalBest(record.name);
+      const bestIndex = appData.bestRecords.findIndex(best =>
+        best.name === record.name &&
+        Number(best.size) === record.size &&
+        best.operation === record.operation
+      );
+
+      const isPersonalBest =
+        bestIndex < 0 || record.time < Number(appData.bestRecords[bestIndex].time);
+
+      if (isPersonalBest) {
+        const bestRecord = { ...record };
+        if (bestIndex < 0) {
+          appData.bestRecords.push(bestRecord);
+        } else {
+          appData.bestRecords[bestIndex] = bestRecord;
+        }
+      }
+
+      appData.records.unshift(record);
+      appData.records = appData.records.slice(0, MAX_HISTORY);
+      saveAppData();
+
+      const personalBest = getPersonalBest(record.name);
+      const rank = getCurrentRank();
+
+      return {
+        record,
+        isPersonalBest: previousBest === null || record.time < previousBest,
+        rank,
+        personalBest
+      };
+    }
+
+    function bestLabel() {
+      const best = getPersonalBest();
+      return best === null ? "" : `　ベスト ${formatTime(best)}`;
+    }
+
+    function updateProgressStatus(prefix = "") {
+      const progress = `${correctCount} / ${totalQuestions()}`;
+      statusEl.textContent =
+        `${prefix}${currentPlayerName()}　${progress}${bestLabel()}`;
+    }
+
+    function operationLabel(op = operationEl.value) {
+      if (op === "-") return "ひき算";
+      if (op === "*") return "かけ算";
+      return "たし算";
+    }
+
+    function formatRecordDate(iso) {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "";
+
+      return new Intl.DateTimeFormat("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(d);
+    }
+
+    function renderRecordsModal() {
+      recordsCondition.textContent =
+        `${gridSizeEl.value}×${gridSizeEl.value}　${operationLabel()}`;
+
+      const top5 = getRanking().slice(0, 5);
+      rankingList.innerHTML = "";
+
+      if (!top5.length) {
+        rankingList.innerHTML =
+          '<div class="empty-state">まだきろくがありません</div>';
+      } else {
+        top5.forEach((item, index) => {
+          const row = document.createElement("div");
+          row.className = `ranking-row rank-${index + 1}`;
+          row.innerHTML = `
+            <div class="rank-no">${index + 1}位</div>
+            <div class="rank-name"></div>
+            <div class="rank-time">${formatTime(item.time)}</div>
+          `;
+          row.querySelector(".rank-name").textContent = item.name;
+          rankingList.appendChild(row);
+        });
+      }
+
+      const recent = currentConditionRecords();
+      historyList.innerHTML = "";
+
+      if (!recent.length) {
+        historyList.innerHTML =
+          '<div class="empty-state">まだりれきがありません</div>';
+      } else {
+        recent.forEach(record => {
+          const row = document.createElement("div");
+          row.className = "history-row";
+
+          const main = document.createElement("div");
+          main.className = "history-main";
+
+          const name = document.createElement("div");
+          name.className = "history-name";
+          name.textContent = record.name;
+
+          const date = document.createElement("div");
+          date.className = "history-date";
+          date.textContent = formatRecordDate(record.date);
+
+          main.append(name, date);
+
+          const time = document.createElement("div");
+          time.className = "history-time";
+          time.textContent = formatTime(record.time);
+
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "delete-record-btn";
+          del.dataset.recordId = record.id;
+          del.setAttribute("aria-label", "この記録を削除");
+          del.textContent = "×";
+
+          row.append(main, time, del);
+          historyList.appendChild(row);
+        });
+      }
+    }
+
+    function openRecordsModal() {
+      renderRecordsModal();
+      recordsModal.hidden = false;
+    }
+
+    function closeRecordsModal() {
+      recordsModal.hidden = true;
+    }
+
+    function renderPlayerManager() {
+      playerManageList.innerHTML = "";
+
+      appData.players.forEach(name => {
+        const row = document.createElement("div");
+        row.className = "player-manage-row";
+
+        const choose = document.createElement("button");
+        choose.type = "button";
+        choose.className = "player-choice-btn";
+        if (name === currentPlayerName()) {
+          choose.classList.add("current");
+        }
+        choose.dataset.playerName = name;
+        choose.textContent = name;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "player-delete-btn";
+        del.dataset.deletePlayer = name;
+        del.setAttribute("aria-label", `${name}を削除`);
+        del.textContent = "🗑";
+        del.disabled = name === "ゲスト";
+
+        row.append(choose, del);
+        playerManageList.appendChild(row);
+      });
+    }
+
+    function refreshPlayerStatus() {
+      if (!running && !countingDown) {
+        statusEl.textContent =
+          `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+      } else if (running && !paused) {
+        updateProgressStatus();
+      }
+    }
+
+    function selectPlayer(name) {
+      if (!appData.players.includes(name)) return;
+
+      appData.currentPlayer = name;
+      saveAppData();
+      renderPlayerSelect();
+      renderPlayerManager();
+      refreshPlayerStatus();
+    }
+
+    function deletePlayer(name) {
+      if (name === "ゲスト" || !appData.players.includes(name)) return;
+
+      const ok = confirm(
+        `「${name}」を消しますか？\nこの名前の記録もすべて消えます。`
+      );
+      if (!ok) return;
+
+      appData.players = appData.players.filter(player => player !== name);
+      appData.records = appData.records.filter(record => record.name !== name);
+      appData.bestRecords = appData.bestRecords.filter(record => record.name !== name);
+
+      if (appData.currentPlayer === name) {
+        appData.currentPlayer = "ゲスト";
+      }
+
+      if (!appData.players.includes("ゲスト")) {
+        appData.players.unshift("ゲスト");
+      }
+
+      saveAppData();
+      renderPlayerSelect();
+      renderPlayerManager();
+      refreshPlayerStatus();
+    }
+
+    function openNameModal() {
+      newPlayerName.value = "";
+      renderPlayerManager();
+      nameModal.hidden = false;
+    }
+
+    function closeNameModal() {
+      nameModal.hidden = true;
+      newPlayerName.blur();
+    }
+
+    function registerPlayer() {
+      const name = newPlayerName.value.trim().replace(/\s+/g, " ");
+      if (!name) {
+        newPlayerName.focus();
+        return;
+      }
+
+      if (!appData.players.includes(name)) {
+        appData.players.push(name);
+      }
+
+      appData.currentPlayer = name;
+      saveAppData();
+      renderPlayerSelect();
+      renderPlayerManager();
+      newPlayerName.value = "";
+      refreshPlayerStatus();
+    }
+
+    function clearHeaderHighlights() {
+      document.querySelectorAll("th.active-header").forEach(th => {
+        th.classList.remove("active-header");
+      });
+    }
+
+    function updateHeaderHighlights(input) {
+      clearHeaderHighlights();
+      if (!input) return;
+
+      const row = Number(input.dataset.row);
+      const col = Number(input.dataset.col);
+
+      const rowHeader = board.querySelector(`th[data-row-header="${row}"]`);
+      const colHeader = board.querySelector(`th[data-col-header="${col}"]`);
+
+      if (rowHeader) rowHeader.classList.add("active-header");
+      if (colHeader) colHeader.classList.add("active-header");
+    }
+
+    function clearConfetti() {
+      confettiLayer.innerHTML = "";
+    }
+
+    function createConfetti() {
+      clearConfetti();
+      const colors = ["#ff6b8a", "#ffd54f", "#6bdcff", "#8ee38b", "#a99bff", "#ff9d4d"];
+
+      for (let i = 0; i < 42; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.setProperty("--duration", `${1.6 + Math.random() * 1.2}s`);
+        piece.style.setProperty("--delay", `${Math.random() * .35}s`);
+        piece.style.setProperty("--drift", `${-70 + Math.random() * 140}px`);
+        piece.style.setProperty("--rotate", `${Math.random() * 360}deg`);
+        confettiLayer.appendChild(piece);
+      }
+    }
+
+    function hideCelebration() {
+      celebrationOverlay.hidden = true;
+      clearConfetti();
+    }
+
+    function showCelebration(elapsed, isNewBest, rank) {
+      celebrationTime.textContent = formatTime(elapsed);
+      celebrationBest.textContent = isNewBest ? "★ じこベスト！ ★" : "";
+      celebrationRank.textContent =
+        rank && rank <= 5 ? `🏆 ランキング ${rank}位` : "";
+
+      createConfetti();
+      celebrationOverlay.hidden = false;
+
+      setTimeout(() => {
+        celebrationOverlay.hidden = true;
+        clearConfetti();
+      }, 2800);
+    }
+
+    function stopCountdown() {
+      if (countdownTimer !== null) {
+        clearTimeout(countdownTimer);
+        countdownTimer = null;
+      }
+      countingDown = false;
+      countdownOverlay.hidden = true;
+    }
+
+    function runCountdown(onDone) {
+      stopCountdown();
+      countingDown = true;
+      countdownOverlay.hidden = false;
+
+      const steps = ["3", "2", "1", "スタート！"];
+      let index = 0;
+
+      const showStep = () => {
+        countdownText.textContent = steps[index];
+        countdownText.style.animation = "none";
+        void countdownText.offsetWidth;
+        countdownText.style.animation = "countdownPop .72s ease both";
+
+        const isLast = index === steps.length - 1;
+        const delay = isLast ? 420 : 720;
+
+        countdownTimer = setTimeout(() => {
+          index++;
+          if (index < steps.length) {
+            showStep();
+          } else {
+            countdownTimer = null;
+            countingDown = false;
+            countdownOverlay.hidden = true;
+            onDone();
+          }
+        }, delay);
+      };
+
+      showStep();
+    }
+
     function getElapsedTime() {
       if (running && !paused) {
         return elapsedBeforePause + (performance.now() - startedAt);
@@ -260,22 +2315,57 @@
       timerId = requestAnimationFrame(updateTimer);
     }
 
+    function setKeypadEnabled(enabled) {
+      keypad.querySelectorAll("button").forEach(btn => {
+        btn.disabled = !enabled;
+      });
+    }
+    function setPlayerControlsEnabled(enabled) {
+      playerSelect.disabled = !enabled;
+      addPlayerBtn.disabled = !enabled;
+      recordsBtn.disabled = !enabled;
+    }
+
+
+    function clearFocusFrame() {
+      document.querySelectorAll("td.focused").forEach(td => {
+        td.classList.remove("focused");
+      });
+      clearHeaderHighlights();
+    }
+
+    function setActiveInput(input) {
+      if (!running || paused || !input) return;
+
+      activeInput = input;
+      clearFocusFrame();
+      input.parentElement.classList.add("focused");
+      updateHeaderHighlights(input);
+
+      try {
+        input.focus({ preventScroll: true });
+      } catch {
+        input.focus();
+      }
+    }
+
     function buildBoard() {
+      board.classList.remove("problem-numbers-hidden");
       board.innerHTML = "";
+      activeInput = null;
 
       const topRow = document.createElement("tr");
-
       const corner = document.createElement("th");
       corner.className = "corner";
       corner.textContent = operationMark();
       topRow.appendChild(corner);
 
-      colNumbers.forEach(num => {
+      colNumbers.forEach((num, c) => {
         const th = document.createElement("th");
         th.textContent = num;
+        th.dataset.colHeader = c;
         topRow.appendChild(th);
       });
-
       board.appendChild(topRow);
 
       rowNumbers.forEach((rowNum, r) => {
@@ -283,22 +2373,27 @@
 
         const rowHeader = document.createElement("th");
         rowHeader.textContent = rowNum;
+        rowHeader.dataset.rowHeader = r;
         tr.appendChild(rowHeader);
 
         colNumbers.forEach((colNum, c) => {
           const td = document.createElement("td");
-
           const input = document.createElement("input");
-          input.type = "number";
-          input.inputMode = "numeric";
+
+          input.type = "text";
           input.className = "answer";
+          input.readOnly = true;
+          input.inputMode = "none";
+          input.tabIndex = -1;
+          input.dataset.correct = calc(rowNum, colNum);
           input.dataset.row = r;
           input.dataset.col = c;
-          input.dataset.correct = calc(rowNum, colNum);
-          input.autocomplete = "off";
-          input.disabled = !running || paused;
+          input.disabled = !running || paused || countingDown;
 
-          input.addEventListener("input", checkInput);
+          input.addEventListener("pointerdown", event => {
+            event.preventDefault();
+            setActiveInput(input);
+          });
 
           td.appendChild(input);
           tr.appendChild(td);
@@ -306,100 +2401,250 @@
 
         board.appendChild(tr);
       });
+
+      scheduleLayout();
     }
 
-    function checkInput(event) {
-      const input = event.target;
-      const td = input.parentElement;
+    function getInputs() {
+      return [...document.querySelectorAll(".answer")];
+    }
 
-      if (input.value === "") {
-        td.classList.remove("correct", "wrong");
-        return;
-      }
+    function getCorrectCount() {
+      return getInputs().reduce((count, input) => {
+        const isCorrect =
+          input.value !== "" &&
+          Number(input.value) === Number(input.dataset.correct);
+        return count + (isCorrect ? 1 : 0);
+      }, 0);
+    }
 
-      const isCorrect =
-        Number(input.value) === Number(input.dataset.correct);
-
-      if (isCorrect) {
-        td.classList.add("correct");
-        td.classList.remove("wrong");
-
-        checkAllCorrect();
-
-        if (running && !paused) {
-          focusNextInput(input);
-        }
-      } else {
-        td.classList.add("wrong");
-        td.classList.remove("correct");
-      }
+    function syncCorrectCount() {
+      correctCount = getCorrectCount();
+      return correctCount;
     }
 
     function focusNextInput(current) {
-      const inputs = [...document.querySelectorAll(".answer")];
+      const inputs = getInputs();
       const index = inputs.indexOf(current);
+
       if (index >= 0 && index < inputs.length - 1) {
-        inputs[index + 1].focus();
-        inputs[index + 1].select();
+        setActiveInput(inputs[index + 1]);
       }
+    }
+
+    function refreshCellState(input) {
+      const td = input.parentElement;
+
+      if (input.value === "") {
+        td.classList.remove("correct", "wrong", "wrong-flash");
+        return "empty";
+      }
+
+      const correctText = String(input.dataset.correct);
+      const valueText = input.value;
+      const isCorrect = valueText === correctText;
+      const isPossiblePrefix =
+        correctText.startsWith(valueText) && valueText.length < correctText.length;
+
+      if (isCorrect) {
+        td.classList.add("correct");
+        td.classList.remove("wrong", "wrong-flash");
+        return "correct";
+      }
+
+      if (isPossiblePrefix) {
+        td.classList.remove("correct", "wrong", "wrong-flash");
+        return "prefix";
+      }
+
+      td.classList.remove("correct");
+      td.classList.add("wrong", "wrong-flash");
+      return "wrong";
+    }
+
+    function appendDigit(digit) {
+      if (!running || paused || countingDown || !activeInput) return;
+      if (activeInput.value.length >= 3) return;
+
+      const target = activeInput;
+      target.value += digit;
+      const state = refreshCellState(target);
+
+      // Progress always reflects the real board, never an accumulated counter.
+      syncCorrectCount();
+      updateProgressStatus();
+
+      if (state === "correct") {
+        const current = target;
+        checkAllCorrect();
+
+        if (running && !paused) {
+          focusNextInput(current);
+        }
+        return;
+      }
+
+      if (state === "wrong") {
+        const wrongValue = target.value;
+
+        setTimeout(() => {
+          if (!running || paused) return;
+          if (target.value !== wrongValue) return;
+
+          target.value = "";
+          target.parentElement.classList.remove("wrong", "wrong-flash");
+          syncCorrectCount();
+          updateProgressStatus();
+
+          if (activeInput === target) {
+            setActiveInput(target);
+          }
+        }, 320);
+      }
+    }
+
+    function deleteDigit() {
+      if (!running || paused || countingDown || !activeInput) return;
+
+      activeInput.value = activeInput.value.slice(0, -1);
+      refreshCellState(activeInput);
+      syncCorrectCount();
+      updateProgressStatus();
     }
 
     function checkAllCorrect() {
       if (!running) return;
 
-      const inputs = [...document.querySelectorAll(".answer")];
-
-      const allCorrect = inputs.length === 100 &&
+      const inputs = getInputs();
+      const allCorrect =
+        inputs.length === totalQuestions() &&
         inputs.every(input =>
           input.value !== "" &&
           Number(input.value) === Number(input.dataset.correct)
         );
 
-      if (!allCorrect) return;
+      if (!allCorrect) {
+        syncCorrectCount();
+        return;
+      }
 
+      correctCount = inputs.length;
       elapsedBeforePause = getElapsedTime();
       running = false;
       paused = false;
       cancelAnimationFrame(timerId);
 
+      const result = addRecord(elapsedBeforePause);
+
       timerEl.textContent = formatTime(elapsedBeforePause);
-      statusEl.textContent = "全問正解！";
+      statusEl.textContent =
+        `全問正解！　${currentPlayerName()}　${correctCount} / ${totalQuestions()}${bestLabel()}`;
 
       inputs.forEach(input => input.disabled = true);
+      clearFocusFrame();
+      activeInput = null;
+
       startBtn.textContent = "もう一度";
+      startBtn.disabled = false;
       pauseBtn.textContent = "一時停止";
       pauseBtn.disabled = true;
+      setKeypadEnabled(false);
+      setPlayerControlsEnabled(true);
+
+      showCelebration(
+        elapsedBeforePause,
+        result.isPersonalBest,
+        result.rank
+      );
+    }
+
+    function resetGame() {
+      cancelAnimationFrame(timerId);
+      stopCountdown();
+      hideCelebration();
+
+      running = false;
+      paused = false;
+      elapsedBeforePause = 0;
+      startedAt = 0;
+      activeInput = null;
+      correctCount = 0;
+
+      timerEl.textContent = "00:00.00";
+      statusEl.textContent =
+        `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+      startBtn.textContent = "スタート";
+      startBtn.disabled = false;
+      pauseBtn.textContent = "一時停止";
+      pauseBtn.disabled = true;
+
+      clearFocusFrame();
+      setKeypadEnabled(false);
+      setPlayerControlsEnabled(true);
+
+      const size = Number(gridSizeEl.value);
+      rowNumbers = createHeaders(size);
+      colNumbers = createHeaders(size);
+      buildBoard();
     }
 
     function startGame() {
       cancelAnimationFrame(timerId);
+      stopCountdown();
+      hideCelebration();
 
-      rowNumbers = shuffle1to10();
-      colNumbers = shuffle1to10();
+      const size = Number(gridSizeEl.value);
+      rowNumbers = createHeaders(size);
+      colNumbers = createHeaders(size);
 
       elapsedBeforePause = 0;
-      running = true;
+      correctCount = 0;
+      running = false;
       paused = false;
+      countingDown = true;
 
       timerEl.textContent = "00:00.00";
-      statusEl.textContent = "計算中…";
+      statusEl.textContent =
+        `じゅんび…　${currentPlayerName()}　0 / ${totalQuestions()}${bestLabel()}`;
       startBtn.textContent = "やり直す";
+      startBtn.disabled = true;
       pauseBtn.textContent = "一時停止";
-      pauseBtn.disabled = false;
+      pauseBtn.disabled = true;
 
       buildBoard();
+      board.classList.add("problem-numbers-hidden");
+      setKeypadEnabled(false);
+      setPlayerControlsEnabled(false);
 
-      startedAt = performance.now();
-      updateTimer();
+      runCountdown(() => {
+        running = true;
+        paused = false;
+        countingDown = false;
 
-      const firstInput = document.querySelector(".answer");
-      if (firstInput) firstInput.focus();
+        // Reveal the randomized row/column numbers exactly when play begins.
+        board.classList.remove("problem-numbers-hidden");
+
+        startBtn.disabled = false;
+        pauseBtn.disabled = false;
+
+        getInputs().forEach(input => input.disabled = false);
+        setKeypadEnabled(true);
+
+        startedAt = performance.now();
+        updateProgressStatus();
+        updateTimer();
+
+        requestAnimationFrame(() => {
+          const first = document.querySelector(".answer");
+          if (first) setActiveInput(first);
+        });
+      });
     }
 
     function togglePause() {
       if (!running) return;
 
-      const inputs = [...document.querySelectorAll(".answer")];
+      const inputs = getInputs();
 
       if (!paused) {
         elapsedBeforePause = getElapsedTime();
@@ -407,43 +2652,279 @@
         cancelAnimationFrame(timerId);
 
         timerEl.textContent = formatTime(elapsedBeforePause);
-        statusEl.textContent = "一時停止中";
+        updateProgressStatus("一時停止中　");
         pauseBtn.textContent = "再開";
+
         inputs.forEach(input => input.disabled = true);
+        clearFocusFrame();
+        setKeypadEnabled(false);
       } else {
         paused = false;
         startedAt = performance.now();
 
-        statusEl.textContent = "計算中…";
+        updateProgressStatus();
         pauseBtn.textContent = "一時停止";
+
         inputs.forEach(input => input.disabled = false);
+        setKeypadEnabled(true);
         updateTimer();
 
-        const next = inputs.find(input =>
-          input.value === "" ||
-          Number(input.value) !== Number(input.dataset.correct)
-        );
-        if (next) next.focus();
+        const next =
+          inputs.find(input =>
+            input.value === "" ||
+            Number(input.value) !== Number(input.dataset.correct)
+          ) || inputs[0];
+
+        setActiveInput(next);
       }
     }
+
+    function layout() {
+      const size = Number(gridSizeEl.value);
+      const cells = size + 1;
+      const landscape = matchMedia("(orientation: landscape)").matches;
+      const smartphoneLandscape =
+        landscape && matchMedia("(max-height: 600px)").matches;
+
+      const w = workArea.clientWidth;
+      const h = workArea.clientHeight;
+      if (!w || !h) return;
+
+      let boardW, boardH, keyH;
+
+      if (smartphoneLandscape) {
+        // スマホ横向き:
+        // [ヘッダー][盤面][テンキー] の3カラム。
+        const viewportW = window.innerWidth;
+        const headerW = Math.min(
+          Math.max(180, viewportW * 0.23),
+          230
+        );
+        const keypadW = Math.min(
+          Math.max(150, w * 0.25),
+          200
+        );
+
+        document.documentElement.style.setProperty(
+          "--phone-header-w",
+          `${headerW}px`
+        );
+        document.documentElement.style.setProperty(
+          "--phone-keypad-w",
+          `${keypadW}px`
+        );
+
+        const boardWrapEl = document.querySelector(".board-wrap");
+        const boardWrapStyle = getComputedStyle(boardWrapEl);
+        const boardPadX =
+          parseFloat(boardWrapStyle.paddingLeft) +
+          parseFloat(boardWrapStyle.paddingRight);
+        const boardPadY =
+          parseFloat(boardWrapStyle.paddingTop) +
+          parseFloat(boardWrapStyle.paddingBottom);
+
+        boardW = Math.max(0, w - keypadW - 8 - boardPadX - 4);
+        boardH = Math.max(0, h - boardPadY - 6);
+
+        // 3列×4行テンキー
+        keyH = Math.min(
+          Math.max((h - 21) / 4, 28),
+          58
+        );
+      } else if (landscape) {
+        // タブレット等の横向きは従来どおり左右配置。
+        const sideSpace = 40;
+        const innerGap = 14;
+
+        const keypadW = Math.min(
+          Math.max(190, w * 0.27),
+          300
+        );
+
+        document.documentElement.style.setProperty("--keypad-w", `${keypadW}px`);
+
+        boardW = Math.max(0, w - keypadW - innerGap - sideSpace);
+        boardH = Math.max(0, h - 18);
+
+        keyH = Math.min(
+          Math.max((boardH - 21) / 4, 32),
+          72
+        );
+      } else {
+        // 縦向きは
+        // ヘッダー / 盤面 / 小余白 / テンキー / 下余白
+        // となるよう盤面を少し控えめにする。
+        keyH = Math.min(
+          Math.max(h * 0.105, 38),
+          60
+        );
+
+        const keypadH = keyH * 2 + 7;
+        const gap = 12;
+        const bottomSpace = 10;
+
+        boardW = Math.max(0, w * 0.96);
+        boardH = Math.max(0, h - keypadH - gap - bottomSpace - 8);
+      }
+
+      const cell = Math.max(
+        16,
+        Math.min(
+          boardW / cells,
+          boardH / cells,
+          108
+        )
+      );
+
+      document.documentElement.style.setProperty("--cell", `${cell}px`);
+      document.documentElement.style.setProperty("--key-h", `${keyH}px`);
+    }
+
+    function scheduleLayout() {
+      requestAnimationFrame(layout);
+      setTimeout(layout, 60);
+      setTimeout(layout, 180);
+    }
+
+    keypad.addEventListener("pointerdown", event => {
+      const button = event.target.closest("button[data-key]");
+      if (!button || button.disabled) return;
+
+      event.preventDefault();
+
+      const key = button.dataset.key;
+      if (key === "delete") {
+        deleteDigit();
+      } else {
+        appendDigit(key);
+      }
+    });
+
+    playerSelect.addEventListener("change", () => {
+      selectPlayer(playerSelect.value);
+    });
+
+    addPlayerBtn.addEventListener("click", openNameModal);
+    cancelNameBtn.addEventListener("click", closeNameModal);
+    saveNameBtn.addEventListener("click", registerPlayer);
+
+    newPlayerName.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        registerPlayer();
+      } else if (event.key === "Escape") {
+        closeNameModal();
+      }
+    });
+
+    nameModal.addEventListener("pointerdown", event => {
+      if (event.target === nameModal) closeNameModal();
+    });
+
+    playerManageList.addEventListener("click", event => {
+      const choose = event.target.closest("[data-player-name]");
+      if (choose) {
+        selectPlayer(choose.dataset.playerName);
+        return;
+      }
+
+      const del = event.target.closest("[data-delete-player]");
+      if (del && !del.disabled) {
+        deletePlayer(del.dataset.deletePlayer);
+      }
+    });
+
+    recordsBtn.addEventListener("click", openRecordsModal);
+    closeRecordsBtn.addEventListener("click", closeRecordsModal);
+
+    recordsModal.addEventListener("pointerdown", event => {
+      if (event.target === recordsModal) closeRecordsModal();
+    });
+
+    historyList.addEventListener("click", event => {
+      const btn = event.target.closest("[data-record-id]");
+      if (!btn) return;
+
+      appData.records = appData.records.filter(
+        record => record.id !== btn.dataset.recordId
+      );
+      saveAppData();
+      renderRecordsModal();
+
+      if (!running && !countingDown) {
+        statusEl.textContent =
+          `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+      }
+    });
+
+    clearRecordsBtn.addEventListener("click", () => {
+      const conditionRecords = currentConditionRecords();
+      if (!conditionRecords.length) return;
+
+      if (!confirm("この条件の記録をすべて消しますか？")) return;
+
+      appData.records = appData.records.filter(record => !conditionMatches(record));
+      appData.bestRecords = appData.bestRecords.filter(
+        record => !conditionMatches(record)
+      );
+      saveAppData();
+      renderRecordsModal();
+
+      if (!running && !countingDown) {
+        statusEl.textContent =
+          `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+      }
+    });
 
     startBtn.addEventListener("click", startGame);
     pauseBtn.addEventListener("click", togglePause);
 
     operationEl.addEventListener("change", () => {
-      if (running) startGame();
-      else buildBoard();
+      if (running) {
+        startGame();
+      } else {
+        const size = Number(gridSizeEl.value);
+        rowNumbers = createHeaders(size);
+        colNumbers = createHeaders(size);
+        correctCount = 0;
+        buildBoard();
+        statusEl.textContent =
+        `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+      }
     });
 
-    rowNumbers = shuffle1to10();
-    colNumbers = shuffle1to10();
-    buildBoard();
+    gridSizeEl.addEventListener("change", () => {
+      resetGame();
+    });
 
+    window.addEventListener("resize", scheduleLayout);
+    window.addEventListener("orientationchange", scheduleLayout);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", scheduleLayout);
+    }
+
+    {
+      const size = Number(gridSizeEl.value);
+      rowNumbers = createHeaders(size);
+      colNumbers = createHeaders(size);
+      renderPlayerSelect();
+      buildBoard();
+      setKeypadEnabled(false);
+      setPlayerControlsEnabled(true);
+      statusEl.textContent =
+        `「スタート」を押してください　${currentPlayerName()}${bestLabel()}`;
+    }
+  </script>
+
+  <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(console.error);
+        navigator.serviceWorker.register("./sw.js").catch(error => {
+          console.error("Service Worker registration failed:", error);
+        });
       });
     }
   </script>
+
 </body>
 </html>
